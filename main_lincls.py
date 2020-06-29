@@ -25,7 +25,7 @@ import torchvision.datasets as datasets
 import torchvision.models as models
 from sklearn.model_selection import StratifiedShuffleSplit
 
-import data_loader
+# import data_loader
 
 import numpy as np
 
