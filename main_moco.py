@@ -2,6 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
 import argparse
 import builtins
+import pathlib
 import math
 import string
 import os
@@ -24,7 +25,7 @@ import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import torchvision.models as models
 
-from imagenet import ImageNet, SubsetSampler # Kakao brain stuff. 
+from imagenet import ImageNet, SubsetSampler # Kakao brain stuff.
 from sklearn.model_selection import StratifiedShuffleSplit
 from torch.utils.data import SubsetRandomSampler, Sampler, Subset, ConcatDataset
 from RandAugment import RandAugment
@@ -129,7 +130,7 @@ parser.add_argument('--moco-t', default=0.07, type=float,
                     help='softmax temperature (default: 0.07)')
 
 
-parser.add_argument('--kfold', default=None, type=int, 
+parser.add_argument('--kfold', default=None, type=int,
     help="which fold to use")
 
 
@@ -145,7 +146,7 @@ parser.add_argument('--faa_aug', action='store_true',
                     help='use FastAutoAugment CIFAR10 augmentations')
 parser.add_argument('--randomcrop', action='store_true',
                     help='use the random crop instead of randomresized crop, for FAA augmentations')
-parser.add_argument('--gauss', action='store_true', 
+parser.add_argument('--gauss', action='store_true',
                     help='blur with FAA augs')
 
 parser.add_argument('--rotnet', action='store_true', help='set true to add a rot net head')
@@ -162,7 +163,7 @@ parser.add_argument('--rand_aug_m_max', default=11, type=int, help='RandAugment 
 parser.add_argument('--rand_aug_top_k', default=0, type=int, help='RandAugment only use the top k augments')
 
 parser.add_argument('--rand_resize_only', action='store_true', help='Use only random resized crop')
-parser.add_argument('--custom_aug_name', default=None, type=str, 
+parser.add_argument('--custom_aug_name', default=None, type=str,
     help='name of custom augmentation')
 parser.add_argument('--single_aug_idx', default=None, type=int, help='Which of the single augmentations to use')
 
@@ -229,9 +230,9 @@ def main_worker(gpu, ngpus_per_node, args):
         CHECKPOINT_ID += "_rotnet"
     if args.rand_aug:
         CHECKPOINT_ID += "_randaug"
-    if not(args.kfold == None): 
+    if not(args.kfold == None):
         CHECKPOINT_ID += "_fold_%d" %(args.kfold)
-    if not(args.custom_aug_name == None): 
+    if not(args.custom_aug_name == None):
         CHECKPOINT_ID += "_custom_aug_" + args.custom_aug_name
 
     CHECKPOINT_ID += args.dataid
@@ -273,6 +274,9 @@ def main_worker(gpu, ngpus_per_node, args):
     )
     print(model)
 
+
+    # setup file structure for saving
+    pathlib.Path(args.checkpoint_fp).mkdir(parents=True, exist_ok=True)
 
     if args.distributed:
         # For multiprocessing distributed, DistributedDataParallel constructor
@@ -353,11 +357,11 @@ def main_worker(gpu, ngpus_per_node, args):
         random_resized_crop = transforms.RandomResizedCrop(224, scale=(0.2, 1.))
 
 
-        
-    if args.aug_plus and (args.faa_aug or 
+
+    if args.aug_plus and (args.faa_aug or
                           args.rand_aug or args.rand_aug_orig or not(args.custom_aug_name == None)):
         raise Exception("Cannot have multiple augs on command line")
-       
+
     if args.aug_plus:
         # MoCo v2's aug: similar to SimCLR https://arxiv.org/abs/2002.05709
         augmentation = [
@@ -371,7 +375,7 @@ def main_worker(gpu, ngpus_per_node, args):
             transforms.ToTensor(),
             normalize
         ]
-    elif args.faa_aug: 
+    elif args.faa_aug:
         augmentation, _ = slm_utils.get_faa_transforms.get_faa_transforms_cifar_10(args.randomcrop, args.gauss)
         transformations = moco.loader.TwoCropsTransform(augmentation)
     elif args.rand_aug_orig:
@@ -382,7 +386,7 @@ def main_worker(gpu, ngpus_per_node, args):
             RandAugment(args.rand_aug_n, args.rand_aug_m),
             transforms.ToTensor(),
             normalize
-        ]    
+        ]
     elif args.rand_aug:
         randaug_n = args.rand_aug_n
         if args.rand_aug_linear_m:
@@ -401,19 +405,19 @@ def main_worker(gpu, ngpus_per_node, args):
             randaug,
             transforms.ToTensor(),
             normalize
-        ]    
+        ]
     elif args.rand_resize_only and args.custom_aug_name == None:
         print("Using random resize only")
         augmentation = [
-            random_resized_crop, 
+            random_resized_crop,
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             normalize
-        ] 
-    elif not args.custom_aug_name == None: 
+        ]
+    elif not args.custom_aug_name == None:
         augmentation, _ = slm_utils.get_faa_transforms.load_custom_transforms(name=args.custom_aug_name, randomcrop=args.randomcrop,
             aug_idx=args.single_aug_idx, dataid=args.dataid)
-        
+
         print('using custom augs', augmentation)
 
         transformations = moco.loader.TwoCropsTransform(augmentation)
@@ -448,20 +452,20 @@ def main_worker(gpu, ngpus_per_node, args):
         transform=transformations)
 
 
-    elif (args.dataid == "imagenet" or args.dataid == 'logos') and args.reduced_imgnet: 
+    elif (args.dataid == "imagenet" or args.dataid == 'logos') and args.reduced_imgnet:
         # idx120 = [16, 23, 52, 57, 76, 93, 95, 96, 99, 121, 122, 128, 148, 172, 181, 189, 202, 210, 232, 238, 257, 258, 259, 277, 283, 289, 295, 304, 307, 318, 322, 331, 337, 338, 345, 350, 361, 375, 376, 381, 388, 399, 401, 408, 424, 431, 432, 440, 447, 462, 464, 472, 483, 497, 506, 512, 530, 541, 553, 554, 557, 564, 570, 584, 612, 614, 619, 626, 631, 632, 650, 657, 658, 660, 674, 675, 680, 682, 691, 695, 699, 711, 734, 736, 741, 754, 757, 764, 769, 770, 780, 781, 787, 797, 799, 811, 822, 829, 830, 835, 837, 842, 843, 845, 873, 883, 897, 900, 902, 905, 913, 920, 925, 937, 938, 940, 941, 944, 949, 959]
-        
+
         if args.dataid == "imagenet":
             total_trainset = ImageNet(root=args.data, transform=transformations) # TODO for LINCLS, make this train and test xforms.
-        
-        else: 
+
+        else:
             total_trainset = data_loader.GetLoader(data_root=args.data,
                     data_list='train_images_root.txt',
                     transform=transformations)
 
         train_idx = np.arange(len(total_trainset))
 
-        np.random.seed(1337) #fingers crossed. 
+        np.random.seed(1337) #fingers crossed.
         np.random.shuffle(train_idx)
         train_idx = train_idx[:50000]
 
@@ -491,26 +495,26 @@ def main_worker(gpu, ngpus_per_node, args):
         print('len train', len(train_idx))
         print('len valid', len(valid_idx))
 
-        for i in valid_idx: 
-            if i in train_idx: 
+        for i in valid_idx:
+            if i in train_idx:
                 raise Exception("Valid idx in train idx: this is unexpected")
         print('train_sampler', train_sampler)
 
 
-       
+
     elif args.dataid == "cifar10":
         train_dataset = torchvision.datasets.CIFAR10(args.data,
                                                      transform=transformations,
                                                      download=True)
 
-    elif args.dataid == "svhn": 
-        train_dataset = torchvision.datasets.SVHN(args.data, 
-            transform=transformations, 
+    elif args.dataid == "svhn":
+        train_dataset = torchvision.datasets.SVHN(args.data,
+            transform=transformations,
             download=True)
     else:
         raise NotImplementedError("Support for the following dataset is not yet implemented: {}".format(args.dataid))
 
-    if not args.kfold == None and not args.reduced_imgnet: 
+    if not args.kfold == None and not args.reduced_imgnet:
         torch.manual_seed(1337)
         print('before: K FOLD', args.kfold, len(train_dataset))
         lengths = [len(train_dataset)//5]*5
@@ -524,9 +528,9 @@ def main_worker(gpu, ngpus_per_node, args):
         train_dataset = torch.utils.data.ConcatDataset(folds)
         print(len(train_dataset))
 
-    else: 
+    else:
         print("NO KFOLD ARG", args.kfold, ' or ', args.reduced_imgnet)
-    
+
     if args.distributed and not args.reduced_imgnet:
         train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
     elif not args.reduced_imgnet:
@@ -630,7 +634,7 @@ def train(train_loader, model, criterion, optimizer, epoch, args, CHECKPOINT_ID)
             eximg0 = wandb.Image(images[0][0].permute(1,2,0).cpu().numpy())
             eximg1 = wandb.Image(images[1][0].permute(1,2,0).cpu().numpy())
             wandb.log({"example comparison image": [eximg0, eximg1]})
-        
+
         # compute output
         if args.rotnet:
             use_images = images[0]
@@ -651,7 +655,7 @@ def train(train_loader, model, criterion, optimizer, epoch, args, CHECKPOINT_ID)
             # rotate 270
             rotated_images[3*nimages:4*nimages] = use_images.transpose(2,3).flip(3)
             rot_classes[3*nimages:4*nimages] = 3
-            
+
             # if i == 0:
             #     eximg0 = wandb.Image(use_images[0].permute(1,2,0).cpu().numpy())
             #     eximg1 = wandb.Image(rotated_images[0].permute(1,2,0).cpu().numpy())
@@ -660,7 +664,7 @@ def train(train_loader, model, criterion, optimizer, epoch, args, CHECKPOINT_ID)
             output = model(head="rotnet", im_q=rotated_images)
             rot_loss = criterion(output, target)
             rot_losses.update(rot_loss.item(), images[0].size(0))
-            
+
         if not args.nomoco:
             output, target = model(head="moco", im_q=images[0], im_k=images[1])
             moco_loss = criterion(output, target)
@@ -795,9 +799,9 @@ class TopRandAugment(RandAugment):
         #     (CutoutAbs, 0, 40),
         #     (TranslateXabs, 0., 100),
         #     (TranslateYabs, 0., 100),
-        # ]        
-        
-        # optimal orderings from rotnet results 
+        # ]
+
+        # optimal orderings from rotnet results
         cifar_rotnet_ordering = [
             8, # contrast
             15, # trans y
