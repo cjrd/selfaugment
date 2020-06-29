@@ -59,6 +59,7 @@ parser.add_argument('--wandbproj', type=str, default='autoself', help='wandb pro
 parser.add_argument('--dataid', help='id of dataset', default="cifar10", choices=('cifar10', 'imagenet', 'svhn', 'logos'))
 parser.add_argument('--checkpoint-interval', default=100, type=int,
                     help='how often to checkpoint')
+parser.add_argument('--nosave_latest', action='store_true', help='include flag to not save the latest epoch during trainig (risky with big datasets since youll only have the checkpoints)')
 parser.add_argument('--image-log-interval', default=10, type=int,
                     help='how often to log example images')
 parser.add_argument('--upload_checkpoints', action='store_true', help='Upload checkpoints to wandb')
@@ -566,7 +567,7 @@ def main_worker(gpu, ngpus_per_node, args):
         train(train_loader, model, criterion, optimizer, epoch, args, CHECKPOINT_ID)
 
         # save current epoch
-        if not args.multiprocessing_distributed or args.rank % ngpus_per_node == 0:
+        if not args.nosave_latest and (not args.multiprocessing_distributed or args.rank % ngpus_per_node == 0):
             print("saving latest epoch")
             cp_filename = "{}_latest.tar".format(CHECKPOINT_ID[:5])
             cp_fullpath = os.path.join(args.checkpoint_fp, cp_filename)
