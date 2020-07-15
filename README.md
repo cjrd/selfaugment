@@ -17,8 +17,12 @@ Some things to check:
 2. If you want selfaugment to run quickly, consider using a small subset of your full dataset. For example, for ImageNet, we only use a small subset of the data - 50,000 random images. This may mean that you need to run unsupervised pretraining for longer than you usually do. We usually scale the number of epochs MoCov2 runs so that the number of total iterations is the same, or a bit smaller, for the subset and the full dataset. 
 
 # Base augmentation. 
-If you want to find the base augmentation, then run main_moco.py with the arguments: 
+If you want to find the base augmentation, then use slm_utils/submit_single_augmentations.py
 
+This will result in 16 models, each with the results of self supervised training using ONLY the augmentation provided.
+slm_utils/submit_single_augmentations is currently using imagenet, so it uses a subset for this part.
+
+Then you will need to train rotation classifiers for each model. this can be done using main_lincls.py
 
 # Train 5 Folds of MoCov2 on the folds of your data. 
 To get started, train 5 moco models using only the base augmentation. 
