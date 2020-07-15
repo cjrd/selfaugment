@@ -1,59 +1,39 @@
-print('Sko Buffs')
 import subprocess
 import shlex
 import os 
 
-base_model_name = ''
-epochs = 750
-import os
+# Notes: This is the setup used to get the 5 folds of the rotnet for our evaluation of rotation predictions
+
+# TODO: you will want to change this to your checkpoint filepath. 
 checkpoint_fp = '/userdata/smetzger/all_deepul_files/ckpts'
 
-# For resuming 
+# Imagenet pretrain
 
-def find_model(name, fold, epochs, basepath="/userdata/smetzger/all_deepul_files/ckpts"):
-    """
-    name = model name
-    fold = which fold of the data to find. 
-    epochs = how many epochs to load the checkpoint at (e.g. 750)
-    
-    """
-    for file in os.listdir(basepath):
-        print(file)
-        if name in str(file) and 'fold_%d' %fold in str(file):
-            print(file)
-            if str(file).endswith(str(epochs-1) + '.tar') or str(file).endswith(str(epochs) + '.tar'): 
-                return os.path.join(basepath, file)
-            
-    print("COULDNT FIND MODEL")
-    assert True==False # just throw and error. 
+faa_names = ['imagenet_minmax', 'imagenet_minmax_weighted', 'imagenet_min_rotation', 'imagenet_min_icl', 'imagenet_max_icl']
+for faa_name in faa_names:  # TODO change. 
 
-base_name = '750epochs_512bsz_0.4000lr_mlp_cos_rotnet'
-# Notes: This is the setup used to get the 5 folds of the rotnet for our evaluation of rotation predictions
-augmentations = ['minmax', 'minmax_weighted', 'min_icl', 'rotation', 'max_icl', 'supervised']
-augmentations = ['svhn_rrc_' + aug for aug in augmentations]
-for custom_aug in augmentations: 
-    filename = '/userdata/smetzger/all_deepul_files/runs/' + custom_aug +  '.txt'
+    print(faa_name)
+
+    # This is all code for my queue system, basically just submits it and writes the output to a txt file. 
+    filename = '/userdata/smetzger/all_deepul_files/runs/logos_%s.txt' %(faa_name)
     string = "submit_job -q mind-gpu"
     string += " -m 318 -g 4"
     string += " -o " + filename
-    string += ' -n svhn'
+    string += ' -n inet_moco'
     string += ' -x python /userdata/smetzger/all_deepul_files/deepul_proj/moco/main_moco.py'
 
     # add all the default args: 
-    string += " -a resnet50 --lr 0.4  --batch-size 512 --dist-url 'tcp://localhost:10001' --multiprocessing-distributed --world-size 1"
+    string += " -a resnet50 --lr 0.015  --batch-size 128 --dist-url 'tcp://localhost:10001' --multiprocessing-distributed --world-size 1"
     string += ' --moco-t 0.2' # MoCov2 arguments. 
     string += ' --checkpoint_fp ' + str(checkpoint_fp)
     string += ' --rank 0'
-    string += " --data /userdata/smetzger/data/cifar_10/ --notes 'KFOLDS for randomresizecrop'"
-
-
-    # THIS LINE IS HUGE: TRAIN THE ROTNET HEAD.
-    # string += ' --rotnet --nomoco' # We are only training rotnets. 
-    string += ' --rand_resize_only'
-    string += ' --custom_aug_name ' + custom_aug
-    string += ' --dataid svhn'
-    string += ' --mlp --cos --epochs 750'
-    string += ' --checkpoint-interval 250'
+    string += " --data /path/to/imagenet/"
+    string += " --notes 'imagenet'"# %fold
+    string += ' --dataid imagenet'
+    string += ' --custom_aug_name ' + faa_name
+    # string += ' --reduced_imgnet'# reduced imagenet. WE train our initial runs with only 50k of the examples.
+                                    # This makes FAA go faster, and reduces overhead. 
+    string += ' --mlp --cos --epochs 100' # because we have the reduced dataset, we run for 500 epochs    # string += ' --kfold %d' %fold
 
     cmd = shlex.split(string)
     print(cmd)
