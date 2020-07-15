@@ -31,10 +31,18 @@ To do this, you can run python slm_utils/submit_moco_folds.py.
 # Run SelfAug
 Now, you must run SelfAug on your dataset. Note - some changes in dataloaders may be necessary depending on your dataset. 
 
+@Colorado, working on making this process cleaner. 
+
+For now, you will need to go into faa_search_single_aug_minmax_w.py, and edit the config there. I will change this to argparse here soon.
+The most critical part of this is entering your checkpoint names in order of each fold under config.checkpoints. 
+
+Loss can be rotation, icl, icl_and_rotation.
+If you are doing icl_and_rotation, then you will need to normalize the loss_weights in loss_weight dict so that each loss is 1/(avg loss across k-folds) for each type of loss. Finally, you are trying to maximize negative loss with Ray, so a negative weighting in the loss weights means that the loss with that weight will be maximized. 
 
 # Retrain using new augmentations found by SelfAug. 
-Now you can retrain using the script slm_utils/submit_self_aug_new.py
-Just make sure to change the augmentation path to the pickle file with your new augmentations. 
+
+Just make sure to change the augmentation path to the pickle file with your new augmentations in load_policies function in get_faa_transforms.py
+Then, submit the job using slm_utils/
 
 
 
