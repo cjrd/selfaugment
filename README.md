@@ -45,7 +45,9 @@ If you are doing icl_and_rotation, then you will need to normalize the loss_weig
 # Retrain using new augmentations found by SelfAug. 
 
 Just make sure to change the augmentation path to the pickle file with your new augmentations in load_policies function in get_faa_transforms.py
-Then, submit the job using slm_utils/
+Then, submit the job using slm_utils/submit_faa_moco.py
+
+
 
 
 
