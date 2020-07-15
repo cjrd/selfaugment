@@ -29,10 +29,7 @@ for faa_name in faa_names:  # TODO change.
     string += " --notes 'imagenet'"# %fold
     string += ' --dataid imagenet'
     string += ' --custom_aug_name ' + faa_name
-    # string += ' --reduced_imgnet'# reduced imagenet. WE train our initial runs with only 50k of the examples.
-                                    # This makes FAA go faster, and reduces overhead. 
-    string += ' --mlp --cos --epochs 100' # because we have the reduced dataset, we run for 500 epochs    # string += ' --kfold %d' %fold
-
+    string += ' --mlp --cos --epochs 100' 
     cmd = shlex.split(string)
     print(cmd)
     subprocess.run(cmd, stderr=subprocess.STDOUT)
