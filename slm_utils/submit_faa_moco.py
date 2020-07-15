@@ -2,8 +2,6 @@ import subprocess
 import shlex
 import os 
 
-# Notes: This is the setup used to get the 5 folds of the rotnet for our evaluation of rotation predictions
-
 # TODO: you will want to change this to your checkpoint filepath. 
 checkpoint_fp = '/userdata/smetzger/all_deepul_files/ckpts'
 
