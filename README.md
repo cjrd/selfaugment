@@ -40,7 +40,7 @@ For now, you will need to go into faa_search_single_aug_minmax_w.py, and edit th
 The most critical part of this is entering your checkpoint names in order of each fold under config.checkpoints. 
 
 Loss can be rotation, icl, icl_and_rotation.
-If you are doing icl_and_rotation, then you will need to normalize the loss_weights in loss_weight dict so that each loss is 1/(avg loss across k-folds) for each type of loss. Finally, you are trying to maximize negative loss with Ray, so a negative weighting in the loss weights means that the loss with that weight will be maximized. 
+If you are doing icl_and_rotation, then you will need to normalize the loss_weights in loss_weight dict so that each loss is 1/(avg loss across k-folds) for each type of loss, I would just use the loss that was in wandb (rot train loss, and ICL loss from pretraining). Finally, you are trying to maximize negative loss with Ray, so a negative weighting in the loss weights means that the loss with that weight will be maximized. 
 
 # Retrain using new augmentations found by SelfAug. 
 
