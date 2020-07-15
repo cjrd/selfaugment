@@ -17,7 +17,7 @@ Some things to check:
 2. If you want selfaugment to run quickly, consider using a small subset of your full dataset. For example, for ImageNet, we only use a small subset of the data - 50,000 random images. This may mean that you need to run unsupervised pretraining for longer than you usually do. We usually scale the number of epochs MoCov2 runs so that the number of total iterations is the same, or a bit smaller, for the subset and the full dataset. 
 
 
-# NOTE: THE HYPERPARAMS MAY BE OFF IN THESE PYTHON FILES. I WILL DOUBLE CHECK THEM TMR. 
+# NOTE: Hyperparemeters, and args may be off in my submission files...will check these all in more detail the next couple days, but these should be a good starting point for now. 
 
 # Base augmentation. 
 If you want to find the base augmentation, then use slm_utils/submit_single_augmentations.py
