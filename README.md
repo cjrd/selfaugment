@@ -16,6 +16,9 @@ Some things to check:
 1. Ensure that the sizing for your dataset is right. If your images are 32x32 (e.g. CIFAR10) - you should ensure that you are using the CIFAR10 style model, which uses a 3x3 input conv, and resizes images to be 28x28 instead of 224x224 (e.g. for ImageNet). This can make a big difference! 
 2. If you want selfaugment to run quickly, consider using a small subset of your full dataset. For example, for ImageNet, we only use a small subset of the data - 50,000 random images. This may mean that you need to run unsupervised pretraining for longer than you usually do. We usually scale the number of epochs MoCov2 runs so that the number of total iterations is the same, or a bit smaller, for the subset and the full dataset. 
 
+
+# NOTE: THE HYPERPARAMS MAY BE OFF IN THESE PYTHON FILES. I WILL DOUBLE CHECK THEM TMR. 
+
 # Base augmentation. 
 If you want to find the base augmentation, then use slm_utils/submit_single_augmentations.py
 
