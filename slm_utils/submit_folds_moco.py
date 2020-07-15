@@ -8,10 +8,10 @@ import os
 checkpoint_fp = '/userdata/smetzger/all_deepul_files/ckpts'
 
 # Imagenet pretrain
-for fold in range(1): # TODO change. 
+for fold in range(5): # TODO change. 
 
     # This is all code for my queue system, basically just submits it and writes the output to a txt file. 
-    filename = '/userdata/smetzger/all_deepul_files/runs/logos_mocov2_%d.txt' %(fold)
+    filename = '/userdata/smetzger/all_deepul_files/runs/imnet_kfolds_%d.txt' %fold
     string = "submit_job -q mind-gpu"
     string += " -m 318 -g 4"
     string += " -o " + filename
@@ -23,14 +23,12 @@ for fold in range(1): # TODO change.
     string += ' --moco-t 0.2' # MoCov2 arguments. 
     string += ' --checkpoint_fp ' + str(checkpoint_fp)
     string += ' --rank 0'
-    string += " --data /userdata/smetzger/data/logos/train_and_test/train/"
-    string += " --notes 'LOGOS RRC'"# %fold
-    string += ' --dataid logos'
-    # string += ' --reduced_imgnet'# reduced imagenet. WE train our initial runs with only 50k of the examples.
-                                    # This makes FAA go faster, and reduces overhead. 
+    string += " --data /userdata/smetzger/data/imagenet/imagenet12/"
+    string += ' --reduced_imgnet'
+    string += ' --custom_aug_name rrc_pure'
     string += ' --mlp --cos --epochs 500' # because we have the reduced dataset, we run for 500 epochs
-    string += ' --rand_resize_only'
-    # string += ' --kfold %d' %fold
+        # string += ' --rand_resize_only'
+    string += ' --kfold %d' %fold
 
     cmd = shlex.split(string)
     print(cmd)
