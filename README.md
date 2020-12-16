@@ -1,5 +1,18 @@
 # SelfAugment
 
+[Paper](https://arxiv.org/abs/2009.07724)
+
+```
+@misc{reed2020selfaugment,
+      title={SelfAugment: Automatic Augmentation Policies for Self-Supervised Learning}, 
+      author={Colorado Reed and Sean Metzger and Aravind Srinivas and Trevor Darrell and Kurt Keutzer},
+      year={2020},
+      eprint={2009.07724},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
+```
+
 SelfAugment extends [MoCo](https://github.com/facebookresearch/moco) to include automatic unsupervised augmentation selection.
 In addition, we've included the ability to pretrain on several new datasets and included a [wandb](http://wandb.ai/) integration.
 
